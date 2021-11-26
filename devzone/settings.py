@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     'base.apps.BaseConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -130,8 +131,8 @@ STATICFILES_DIRS = [
 
 
 # where to save uploaded images from user
-MEDIA_URL = 'images/users/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images/users/')
+MEDIA_URL = 'images/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images/')
 
 # TODO: staticfile in release mode
 # python manage.py collectstatic, requirement for release 'whitenoise'

@@ -1,16 +1,19 @@
 from django.db import models
+from django.db.models.deletion import SET_NULL
+from users.models import Profile
 import uuid
 
 # Create your models here.
 
 
 class Project(models.Model):
+    owner = models.ForeignKey(Profile, null=True, blank=True, on_delete=SET_NULL)
     title = models.CharField(max_length=200)
     # null for database, blank for django to solve post request
     description = models.TextField(null=True, blank=True)
-    # default is based on MEDIA_ROOT
+    # default and upload_to are based on MEDIA_ROOT
     featured_image = models.ImageField(
-        null=True, blank=True, default="../default.jpg") # search in static dir
+        null=True, blank=True, upload_to='projects/', default="default.jpg") # search in static dir
 
     demo_link = models.CharField(max_length=2000, null=True, blank=True)
     source_link = models.CharField(max_length=2000, null=True, blank=True)

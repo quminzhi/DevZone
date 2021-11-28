@@ -1,10 +1,10 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from .forms import MyUserCreationForm, ProfileForm, SkillForm
+from .forms import MyUserCreationForm, ProfileForm, SkillForm, MessageForm
 from django.contrib import messages
 from django.contrib.auth.models import User
-from .models import Profile
+from .models import Profile, Message
 from .utils import paginateProfiles, searchProfiles
 
 # Create your views here.
@@ -192,3 +192,66 @@ def deleteSkill(request, pk):
     }
 
     return render(request, 'delete-template.html', context)
+
+
+@login_required(login_url='login')
+def inboxView(request):
+    profile = request.user.profile
+    # notice that messages here is the related name of recipient in model
+    myMessages = profile.messages.all()
+    unread_count = myMessages.filter(is_read=False).count()
+
+    context = {
+        'myMessages': myMessages,
+        'unread_count': unread_count,
+    }
+
+    return render(request, 'users/inbox.html', context)
+
+
+@login_required(login_url='login')
+def messageView(request, pk):
+    # pk: message id
+    profile = request.user.profile
+    # refer to Message with related name not default name message_set
+    message = profile.messages.get(id=pk) 
+    if (message.is_read == False):
+        message.is_read = True
+        message.save()
+    
+    context = {
+        'message': message,
+    }
+
+    return render(request, 'users/message.html', context)
+
+def createMessage(request, pk):
+    # pk: the profile id of recipient
+    recipient = Profile.objects.get(id=pk)
+    form = MessageForm()
+    
+    try:
+        sender = request.user.profile # login
+    except:
+        sender = None # non-login
+    
+    if (request.method == 'POST'):
+        form = MessageForm(request.POST)
+        if (form.is_valid()):
+            message = form.save(commit=False)
+            message.sender = sender
+            message.recipient = recipient
+            # fill name and email for login user
+            if (sender):
+                message.name = sender.name
+                message.email = sender.email
+            message.save()
+            messages.success(request, 'Message has been sent!')
+            return redirect('user-profile', pk=recipient.id)
+    
+    context = {
+        'recipient': recipient,
+        'form': form,
+    }
+    
+    return render(request, 'users/message-form.html', context)

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import MyUserCreationForm, ProfileForm, SkillForm
 from django.contrib import messages
 from django.contrib.auth.models import User
-from .models import Profile, Skill
+from .models import Profile
 from .utils import paginateProfiles, searchProfiles
 
 # Create your views here.
@@ -17,7 +17,7 @@ def loginView(request):
         return redirect('profiles')
 
     if (request.method == 'POST'):
-        username = request.POST['username']
+        username = request.POST['username'].lower()
         password = request.POST['password']
 
         try:
@@ -29,7 +29,7 @@ def loginView(request):
         user = authenticate(request, username=username, password=password)
         if (user is not None):
             login(request, user)
-            return redirect('profiles')
+            return redirect(request.GET['back'] if 'back' in request.GET else 'account')
         else:
             messages.error(request, "Username or password is not correct")
 
@@ -74,7 +74,7 @@ def registerView(request):
 def profiles(request):
     profiles, q = searchProfiles(request)
     profiles, custom_range = paginateProfiles(request, profiles, 3)
-    
+
     context = {
         'profiles': profiles,
         'custom_range': custom_range,
@@ -127,7 +127,7 @@ def updateAccount(request):
         if (form.is_valid()):
             form.save()
             return redirect('account')
-        
+
     context = {
         'form': form,
     }
@@ -139,16 +139,16 @@ def updateAccount(request):
 def createSkill(request):
     profile = request.user.profile
     form = SkillForm()
-    
+
     if (request.method == 'POST'):
         form = SkillForm(request.POST)
         if (form.is_valid()):
             skill = form.save(commit=False)
-            skill.owner = profile # link to profile
+            skill.owner = profile  # link to profile
             skill.save()
             messages.success(request, "Skill was added!")
             return redirect('account')
-    
+
     context = {
         'form': form,
     }
@@ -162,30 +162,31 @@ def updateSkill(request, pk):
     profile = request.user.profile
     skill = profile.skill_set.get(id=pk)
     form = SkillForm(instance=skill)
-    
+
     if (request.method == 'POST'):
         form = SkillForm(request.POST, instance=skill)
         if (form.is_valid()):
             form.save()
             messages.success(request, "Skill was updated!")
             return redirect('account')
-    
+
     context = {
         'form': form,
     }
 
     return render(request, 'users/skill-form.html', context)
 
+
 @login_required(login_url='login')
 def deleteSkill(request, pk):
     profile = request.user.profile
     skill = profile.skill_set.get(id=pk)
-    
+
     if (request.method == 'POST'):
         skill.delete()
         messages.success(request, "Skill was deleted.")
         return redirect('account')
-    
+
     context = {
         'object': skill,
     }

@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models.deletion import SET_NULL
+from django.db.models.deletion import CASCADE, SET_NULL
 from users.models import Profile
 import uuid
 
@@ -7,13 +7,14 @@ import uuid
 
 
 class Project(models.Model):
-    owner = models.ForeignKey(Profile, null=True, blank=True, on_delete=SET_NULL)
+    owner = models.ForeignKey(
+        Profile, null=True, blank=True, on_delete=SET_NULL)
     title = models.CharField(max_length=200)
     # null for database, blank for django to solve post request
     description = models.TextField(null=True, blank=True)
     # default and upload_to are based on MEDIA_ROOT
     featured_image = models.ImageField(
-        null=True, blank=True, upload_to='projects/', default="default.jpg") # search in static dir
+        null=True, blank=True, upload_to='projects/', default="default.jpg")  # search in static dir
 
     demo_link = models.CharField(max_length=2000, null=True, blank=True)
     source_link = models.CharField(max_length=2000, null=True, blank=True)
@@ -31,7 +32,25 @@ class Project(models.Model):
         return self.title
 
     class Meta:
-        ordering = ['created']
+        ordering = ['-pos_ratio', '-vote_total', '-created']
+
+    @property
+    def reviewers(self):
+        # flat converts result to list
+        queryset = self.review_set.all().values_list('owner__id', flat=True)
+        return queryset
+
+    @property
+    def getVoteCount(self):
+        reviews = self.review_set.all()
+        upVote = reviews.filter(value='up').count()
+        totalVotes = reviews.count()
+        ratio = (upVote / totalVotes) * 100
+
+        self.vote_total = totalVotes
+        self.pos_ratio = ratio
+        self.save()
+
 
 class Review(models.Model):
     VOTE_TYPE = (
@@ -39,6 +58,7 @@ class Review(models.Model):
         ('down', 'down vote'),
     )
 
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
     # TODO: one to many relationship
     # CASCADE: when parent is gone, all reviews related to it are deleted
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -48,6 +68,10 @@ class Review(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     id = models.UUIDField(default=uuid.uuid4, unique=True,
                           primary_key=True, editable=False)
+
+    class Meta:
+        # prevent from a user voting more than once
+        unique_together = [['owner', 'project']]
 
     def __str__(self):
         return self.value

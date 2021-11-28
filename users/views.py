@@ -5,7 +5,7 @@ from .forms import MyUserCreationForm, ProfileForm, SkillForm
 from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import Profile, Skill
-from .utils import searchProfiles
+from .utils import paginateProfiles, searchProfiles
 
 # Create your views here.
 
@@ -73,9 +73,11 @@ def registerView(request):
 
 def profiles(request):
     profiles, q = searchProfiles(request)
+    profiles, custom_range = paginateProfiles(request, profiles, 3)
     
     context = {
         'profiles': profiles,
+        'custom_range': custom_range,
         'q': q,
     }
 

@@ -35,10 +35,12 @@
                 </div>
 
                 <div class="comments">
+                    {% if request.user.profile.id == project.owner.id %}
                     <h3 class="singleProject__subtitle">Feedback</h3>
                     <h5 class="project--rating">
                         {{ project.pos_ratio }}% Positive Feedback ({{ project.vote_total }} Vote{{ project.vote_total | pluralize:'s' }})
                     </h5>
+                    {% endif %}
 
                     {% if request.user.profile.id in project.reviewers %}
                     <p>You have already submitted review for the project.</p>

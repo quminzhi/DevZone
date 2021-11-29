@@ -50,7 +50,7 @@ img {
 }
 
 .header__logo > img {
-  height: 3.8rem;
+  height: 8.0rem;
 }
 
 .header__nav > ul {
@@ -533,6 +533,10 @@ img {
   margin: 1rem 0;
   font-size: 1.4rem;
   text-align: justify;
+}
+
+.project__tags {
+  margin-top: 1rem;
 }
 
 /*========== Comments ==========*/

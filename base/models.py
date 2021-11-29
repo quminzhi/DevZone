@@ -10,6 +10,7 @@ class Project(models.Model):
     owner = models.ForeignKey(
         Profile, null=True, blank=True, on_delete=CASCADE)
     title = models.CharField(max_length=200)
+    short_intro = models.CharField(max_length=200, null=True, blank=True)
     # null for database, blank for django to solve post request
     description = models.TextField(null=True, blank=True)
     # default and upload_to are based on MEDIA_ROOT

@@ -255,3 +255,11 @@ def createMessage(request, pk):
     }
     
     return render(request, 'users/message-form.html', context)
+
+@login_required(login_url='login')
+def deleteMessage(request, pk):
+    # pk: message id
+    message = Message.objects.get(id=pk)
+    message.delete()
+    
+    return redirect('inbox')

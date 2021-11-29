@@ -9,6 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('projects/', include('base.urls')),
     path('', include('users.urls')),
+    path('api/', include('api.urls')),
 
     # 1. User submits email for reset
     # 2. Email sent message

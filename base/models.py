@@ -8,7 +8,7 @@ import uuid
 
 class Project(models.Model):
     owner = models.ForeignKey(
-        Profile, null=True, blank=True, on_delete=SET_NULL)
+        Profile, null=True, blank=True, on_delete=CASCADE)
     title = models.CharField(max_length=200)
     # null for database, blank for django to solve post request
     description = models.TextField(null=True, blank=True)
@@ -33,6 +33,14 @@ class Project(models.Model):
 
     class Meta:
         ordering = ['-pos_ratio', '-vote_total', '-created']
+
+    @property
+    def imageURL(self):
+        try:
+            url = self.featured_image.url
+        except:
+            url = ''
+        return url
 
     @property
     def reviewers(self):

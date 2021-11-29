@@ -17,6 +17,7 @@
                     <span class="message__subject">{{ message.subject }}</span>
                     <span class="message__date">{{ message.created }}</span>
                 </a>
+                <a href="{% url 'delete-message' message.id %}">delete</a>
             </li>
             {% endfor %}
         </ul>

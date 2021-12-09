@@ -32,7 +32,7 @@ def singleProject(request, pk):
         review.save()
         messages.success(request, 'Thanks for your review!')
         
-        project.getVoteCount
+        project.refreshVoteCount
         
         return redirect('single-project', pk=project.id)
     

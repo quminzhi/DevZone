@@ -50,7 +50,7 @@ class Project(models.Model):
         return queryset
 
     @property
-    def getVoteCount(self):
+    def refreshVoteCount(self):
         reviews = self.review_set.all()
         upVote = reviews.filter(value='up').count()
         totalVotes = reviews.count()

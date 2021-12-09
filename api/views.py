@@ -4,7 +4,6 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from base.models import Project, Tag, Review
 from .serializers import ProjectSerializer
-from base.models import Project
 
 from api import serializers
 
@@ -34,7 +33,7 @@ def getRoutes(request):
     return Response(routes)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def getProjects(request):
     print('User:', request.user)
     projects = Project.objects.all()

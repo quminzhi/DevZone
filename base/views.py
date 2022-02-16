@@ -6,7 +6,6 @@ from .models import Project, Tag
 from .utils import searchProjects, paginateProjects
 
 
-
 def projects(request):
     projects, q = searchProjects(request)
     projects, custom_range = paginateProjects(request, projects, 3)

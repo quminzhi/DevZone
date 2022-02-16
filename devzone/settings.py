@@ -188,14 +188,18 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email Settings
+# Customize User
+AUTH_USER_MODEL = 'users.User'
 
+# Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_ADDR')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+# EMAIL_HOST_USER = os.environ.get('EMAIL_PUB')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWD')
+EMAIL_HOST_USER = "mzqu2022@gmail.com"
+EMAIL_HOST_PASSWORD = "afiehnjsnpwijruu"
 
 # CORS_ALLOWED_ORIGINS
 # CORS_ALLOWED_ORIGIN_REGEXES

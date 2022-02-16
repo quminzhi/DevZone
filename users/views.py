@@ -1,14 +1,19 @@
 from django.shortcuts import redirect, render
+from django.http import HttpResponse
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from .forms import MyUserCreationForm, ProfileForm, SkillForm, MessageForm
 from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import Profile, Message
-from .utils import paginateProfiles, searchProfiles
+from .utils import paginateProfiles, searchProfiles, account_activation_token
 
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import EmailMessage
 # Create your views here.
-
 
 def loginView(request):
     page = 'login'
@@ -17,21 +22,28 @@ def loginView(request):
         return redirect('profiles')
 
     if (request.method == 'POST'):
-        username = request.POST['username'].lower()
+        email = request.POST['email'].lower()
         password = request.POST['password']
 
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=email)
         except:
             # messages is a key word in django, do not redefine it
-            messages.error(request, "Username not found")
+            messages.error(request, "Husky email not found!")
+            return redirect('login')
 
-        user = authenticate(request, username=username, password=password)
-        if (user is not None):
-            login(request, user)
-            return redirect(request.GET['back'] if 'back' in request.GET else 'account')
+        if (not user.is_active):
+            messages.warning(request, "Please activate your account first.")
+            return redirect('login')
         else:
-            messages.error(request, "Username or password is not correct")
+            user = authenticate(request, email=email, password=password)
+            if (user is not None):
+                login(request, user)
+                return redirect(request.GET['back'] if 'back' in request.GET else 'account')
+            else:
+                messages.error(
+                    request, "Husky email or password is not correct")
+                return redirect('login')
 
     context = {
         'page': page,
@@ -51,17 +63,49 @@ def registerView(request):
     form = MyUserCreationForm()
 
     if (request.method == 'POST'):
+        # delete inactivated user
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if (user is not None) and (user.is_active == False):
+            user.delete()
+
         form = MyUserCreationForm(request.POST)
         if (form.is_valid()):
             user = form.save(commit=False)  # form return a user but not save
+
+            # require for using uw email to signup
+            if (not user.email.endswith('uw.edu')):
+                messages.info(request, 'Please signup with UW email.')
+                return redirect('register')
+
             user.username = user.username.lower()
+            user.is_active = False  # wait for email confirmation
             user.save()
 
-            messages.success(request, 'User account was created')
-            login(request, user)
-            return redirect('account')
+            current_site = get_current_site(request)
+            subject = 'Activate Your Account@DevZone'
+            message = render_to_string(
+                'users/activation/email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': account_activation_token.make_token(user),
+                }
+            )
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(subject, message, to=[to_email])
+            email.send()
+
+            messages.info(
+                request, 'User account was created but is waiting for activation.')
+            return render(request, 'users/activation/activate.html')
+
         else:
             messages.error(request, 'An error occurred during registration')
+            return redirect('register')
 
     context = {
         'page': page,
@@ -69,6 +113,23 @@ def registerView(request):
     }
 
     return render(request, 'users/login-register.html', context)
+
+
+def activateView(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        messages.success(request, 'Welcome back ' + user.username + '!')
+        return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+    else:
+        messages.error(request, 'Sorry, we cannot verify your email')
+        return HttpResponse('Activation link is invalid!')
 
 
 def profiles(request):
@@ -214,27 +275,28 @@ def messageView(request, pk):
     # pk: message id
     profile = request.user.profile
     # refer to Message with related name not default name message_set
-    message = profile.messages.get(id=pk) 
+    message = profile.messages.get(id=pk)
     if (message.is_read == False):
         message.is_read = True
         message.save()
-    
+
     context = {
         'message': message,
     }
 
     return render(request, 'users/message.html', context)
 
+
 def createMessage(request, pk):
     # pk: the profile id of recipient
     recipient = Profile.objects.get(id=pk)
     form = MessageForm()
-    
+
     try:
-        sender = request.user.profile # login
+        sender = request.user.profile  # login
     except:
-        sender = None # non-login
-    
+        sender = None  # non-login
+
     if (request.method == 'POST'):
         form = MessageForm(request.POST)
         if (form.is_valid()):
@@ -248,18 +310,19 @@ def createMessage(request, pk):
             message.save()
             messages.success(request, 'Message has been sent!')
             return redirect('user-profile', pk=recipient.id)
-    
+
     context = {
         'recipient': recipient,
         'form': form,
     }
-    
+
     return render(request, 'users/message-form.html', context)
+
 
 @login_required(login_url='login')
 def deleteMessage(request, pk):
     # pk: message id
     message = Message.objects.get(id=pk)
     message.delete()
-    
+
     return redirect('inbox')

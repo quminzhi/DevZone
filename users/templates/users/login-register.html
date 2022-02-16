@@ -16,11 +16,11 @@
 
         <form action="" class="form auth__form" method="POST">
             {% csrf_token %}
-            <!-- Input:Username -->
+            <!-- Input:email -->
             <div class="form__field">
-                <label for="formInput#text">Username: </label>
-                <input class="input input--text" id="formInput#text" type="text" name="username"
-                    placeholder="Enter your username" />
+              <label for="formInput#text">Husky Email: </label>
+              <input class="input input--text" id="formInput#text" type="text" name="email"
+                  placeholder="eg. minzhi@uw.edu" />
             </div>
 
             <!-- Input:Password -->

@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from .models import User
 from .models import Profile
 
 from django.db.models.signals import post_save, post_delete
@@ -38,6 +38,18 @@ def createProfile(sender, instance, created, **kwargs):
         )
 
 # if profile is update then update responding items in user
+def createProfile(sender, instance, created, **kwargs):
+    if created:
+        user = instance
+        profile = Profile.objects.create(
+            user=user,
+            username=user.username,
+            email=user.email,
+            name=user.first_name,
+        )
+
+
+# if profile is update then update responding items in user
 def updateUser(sender, instance, created, **kwargs):
     profile = instance
     user = profile.user
@@ -48,6 +60,7 @@ def updateUser(sender, instance, created, **kwargs):
         user.email = profile.email
         user.save()
 
+
 # if profile is deleted then user is deleted
 def deleteUser(sender, instance, **kwargs):
     try:
@@ -55,6 +68,7 @@ def deleteUser(sender, instance, **kwargs):
         user.delete()
     except:
         pass
+
 
 post_save.connect(createProfile, sender=User)
 post_save.connect(updateUser, sender=Profile)

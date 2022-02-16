@@ -4,7 +4,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from .forms import MyUserCreationForm, ProfileForm, SkillForm, MessageForm
 from django.contrib import messages
-from django.contrib.auth.models import User
+from .models import User
 from .models import Profile, Message
 from .utils import paginateProfiles, searchProfiles, account_activation_token
 

@@ -10,14 +10,14 @@ from django.contrib.auth.models import AbstractUser
 #     pass
 class User(AbstractUser):
     username = models.CharField(max_length=200, null=True, unique=True)
-    name = models.CharField(max_length=200, null=True)
+    name = models.CharField(max_length=200, null=True) # firstname
     email = models.EmailField(null=True, unique=True)
     bio = models.TextField(null=True, blank=True)
     
     avatar = models.ImageField(null=True, upload_to='profiles/', default="avatar.svg")
     
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'username']
+    REQUIRED_FIELDS = ['username', 'name']
     
     @property
     def imageURL(self):

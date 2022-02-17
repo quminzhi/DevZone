@@ -11,12 +11,16 @@ from api import serializers
 @api_view(['GET'])
 def getRoutes(request):
     routes = [
-        {'GET': '/api/projects'},
-        {'GET': '/api/projects/id'},
-        {'POST': '/api/projects/id/vote'},
+        {'GET': '/api/projects/'},
+        {'GET': '/api/project/id/'},
 
-        {'POST': '/api/users/token'},
-        {'POST': '/api/users/token/refresh'},
+        {'POST': '/api/user/token/'},
+        {'POST': '/api/user/token/refresh/'},
+
+        {'POST': '/api/project/id/vote/'},
+
+        {'DELETE': '/api/remove-tag/ (token required with \'api/user/token\', tag id and project id in JSON)'},
+        {'PUT': '/api/add-tag/ (token required with \'api/user/token\', tag value and project id in JSON)'}
     ]
 
     return Response(routes)
@@ -48,19 +52,21 @@ def projectVote(request, pk):
     data = request.data  # JSON
 
     # print("DATA: ", data)
+    
+    # created is a flag, true if new record is created
     review, created = Review.objects.get_or_create(
         owner=user,
         project=project,
     )
     review.value = data['value']
     review.save()
-    project.refreshVoteCount
 
     serializer = ProjectSerializer(project, many=False)
     return Response(serializer.data)
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def removeTag(request):
     tagID = request.data['tag']
     projectID = request.data['project']
@@ -71,3 +77,17 @@ def removeTag(request):
     project.tags.remove(tag)
 
     return Response("Tag was deleted!")
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def addTag(request):
+    tag_value = request.data['tag']
+    projectID = request.data['project']
+
+    project = Project.objects.get(id=projectID)
+    tag, created = Tag.objects.get_or_create(
+        name=tag_value
+    )
+    project.tags.add(tag)
+
+    return Response("Tag was added!")

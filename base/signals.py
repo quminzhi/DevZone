@@ -6,5 +6,5 @@ from django.dispatch import receiver
 # signal method 1:
 @receiver(post_save, sender=Review)
 def alert(sender, instance, created, **kwargs):
-    project = sender.project
+    project = instance.project
     project.refreshVoteCount

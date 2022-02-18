@@ -52,7 +52,7 @@ def projectVote(request, pk):
     data = request.data  # JSON
 
     # print("DATA: ", data)
-    
+
     # created is a flag, true if new record is created
     review, created = Review.objects.get_or_create(
         owner=user,
@@ -77,6 +77,7 @@ def removeTag(request):
     project.tags.remove(tag)
 
     return Response("Tag was deleted!")
+
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

@@ -169,3 +169,4 @@ cython_debug/
 ist/__pycache__/
 # db.sqlite3
 
+.env

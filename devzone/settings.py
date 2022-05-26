@@ -128,12 +128,12 @@ WSGI_APPLICATION = 'devzone.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres', # default db name postgres
-        'USER': 'quminzhi',
-        'HOST': os.environ.get('DB_HOST_DEVZONE'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'devzone',
+        'USER': 'root',
+        'HOST': '18.216.33.255',
         'PASSWORD': os.environ.get('DB_PASSWD'),
-        'POST': '5432'
+        'POST': '3306'
     }
 }
 
